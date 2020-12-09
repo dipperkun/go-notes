@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+// go package
+option go_package = "github.com/dipperkun/go-notes/grpc/hello/idl";
+
+package idl;
+
+service Greeter {
+    rpc One (Req) returns (Resp) {}
+}
+
+message Req {
+    int64  seq = 1;
+    string name = 2;
+}
+
+message Resp {
+    string gift = 1;
+}
