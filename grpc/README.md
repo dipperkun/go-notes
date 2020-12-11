@@ -26,4 +26,5 @@ protoc --go_out=. --go_opt=paths=source_relative \
   idl/greet.proto
 
 go get -u google.golang.org/grpc
+go mod tidy
 ```

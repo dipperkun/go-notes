@@ -18,6 +18,7 @@ const _ = grpc.SupportPackageIsVersion7
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type GreeterClient interface {
 	One(ctx context.Context, in *Req, opts ...grpc.CallOption) (*Resp, error)
+	Two(ctx context.Context, in *Req, opts ...grpc.CallOption) (Greeter_TwoClient, error)
 }
 
 type greeterClient struct {
@@ -37,11 +38,44 @@ func (c *greeterClient) One(ctx context.Context, in *Req, opts ...grpc.CallOptio
 	return out, nil
 }
 
+func (c *greeterClient) Two(ctx context.Context, in *Req, opts ...grpc.CallOption) (Greeter_TwoClient, error) {
+	stream, err := c.cc.NewStream(ctx, &_Greeter_serviceDesc.Streams[0], "/idl.Greeter/Two", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &greeterTwoClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type Greeter_TwoClient interface {
+	Recv() (*Resp, error)
+	grpc.ClientStream
+}
+
+type greeterTwoClient struct {
+	grpc.ClientStream
+}
+
+func (x *greeterTwoClient) Recv() (*Resp, error) {
+	m := new(Resp)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 // GreeterServer is the server API for Greeter service.
 // All implementations must embed UnimplementedGreeterServer
 // for forward compatibility
 type GreeterServer interface {
 	One(context.Context, *Req) (*Resp, error)
+	Two(*Req, Greeter_TwoServer) error
 	mustEmbedUnimplementedGreeterServer()
 }
 
@@ -51,6 +85,9 @@ type UnimplementedGreeterServer struct {
 
 func (UnimplementedGreeterServer) One(context.Context, *Req) (*Resp, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method One not implemented")
+}
+func (UnimplementedGreeterServer) Two(*Req, Greeter_TwoServer) error {
+	return status.Errorf(codes.Unimplemented, "method Two not implemented")
 }
 func (UnimplementedGreeterServer) mustEmbedUnimplementedGreeterServer() {}
 
@@ -83,6 +120,27 @@ func _Greeter_One_Handler(srv interface{}, ctx context.Context, dec func(interfa
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Greeter_Two_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(Req)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(GreeterServer).Two(m, &greeterTwoServer{stream})
+}
+
+type Greeter_TwoServer interface {
+	Send(*Resp) error
+	grpc.ServerStream
+}
+
+type greeterTwoServer struct {
+	grpc.ServerStream
+}
+
+func (x *greeterTwoServer) Send(m *Resp) error {
+	return x.ServerStream.SendMsg(m)
+}
+
 var _Greeter_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "idl.Greeter",
 	HandlerType: (*GreeterServer)(nil),
@@ -92,6 +150,12 @@ var _Greeter_serviceDesc = grpc.ServiceDesc{
 			Handler:    _Greeter_One_Handler,
 		},
 	},
-	Streams:  []grpc.StreamDesc{},
+	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "Two",
+			Handler:       _Greeter_Two_Handler,
+			ServerStreams: true,
+		},
+	},
 	Metadata: "idl/greet.proto",
 }
