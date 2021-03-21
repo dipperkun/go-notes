@@ -14,6 +14,7 @@ func main() {
 	r := httprouter.New()
 	r.GET("/api/v1/go-version", goVersion)
 	r.GET("/api/v1/files/:name", cat)
+	r.ServeFiles("/static/*filepath", http.Dir("./static"))
 	log.Fatal(http.ListenAndServe(":8000", r))
 }
 
