@@ -1,6 +1,16 @@
+package bank
+
+import (
+	"bytes"
+	"os"
+	"reflect"
+	"testing"
+)
+
 type SpySleeper struct {
 	Calls int
 }
+
 func (s *SpySleeper) Sleep() {
 	s.Calls++
 }

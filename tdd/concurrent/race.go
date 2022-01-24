@@ -1,5 +1,11 @@
 package concurrent
 
+import (
+	"fmt"
+	"net/http"
+	"time"
+)
+
 func Race(a, b string, timeout time.Duration) (string, error) {
 	select {
 	case <-ping(a):

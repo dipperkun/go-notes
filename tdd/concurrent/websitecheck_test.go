@@ -1,29 +1,29 @@
 package concurrent
 
 import (
-	"testing"
 	"reflect"
+	"testing"
 	"time"
 )
 
 func mockChecker(url string) bool {
-	time.Sleep(50 * time.MilliSecond)
+	time.Sleep(50 * time.Millisecond)
 	if url == "http://bad.omg" {
 		return false
 	}
 	return true
 }
 
-func TestCheckWebsites(t *testing) {
-	urls := []string {
+func TestCheckWebsites(t *testing.T) {
+	urls := []string{
 		"http://good.com",
 		"http://better.com",
 		"http://bad.omg",
 	}
-	expected := map[string]bool {
-		"http://good.com": true,
+	expected := map[string]bool{
+		"http://good.com":   true,
 		"http://better.com": true,
-		"http://bad.omg": false,
+		"http://bad.omg":    false,
 	}
 
 	got := CheckWebsites(mockChecker, urls)

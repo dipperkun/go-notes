@@ -7,12 +7,12 @@ type result struct {
 	res bool
 }
 
-func CheckWebsites(chk WebsiteCheck, urls []string) map[string] bool {
+func CheckWebsites(chk WebsiteChecker, urls []string) map[string]bool {
 	res := make(map[string]bool)
 	resChan := make(chan result)
 	for _, url := range urls {
 		go func(u string) {
-			resChan <- result {u, chk(u)}
+			resChan <- result{u, chk(u)}
 		}(url)
 	}
 
@@ -22,4 +22,3 @@ func CheckWebsites(chk WebsiteCheck, urls []string) map[string] bool {
 	}
 	return res
 }
-
