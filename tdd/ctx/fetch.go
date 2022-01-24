@@ -1,28 +1,21 @@
 package ctx
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 )
 
 func Serve(store Storer) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		ctx := r.Context()
-		data := make(chan string, 1)
-
-		go func() {
-			data <- store.Fetch()
-		}()
-		select {
-		case d := <-data:
-			fmt.Fprint(w, d)
-		case <-ctx.Done():
-			store.Cancel()
+		data, err := store.Fetch(r.Context())
+		if err != nil {
+			return
 		}
+		fmt.Fprint(w, data)
 	}
 }
 
 type Storer interface {
-	Fetch() string
-	Cancel()
+	Fetch(context.Context) (string, error)
 }
